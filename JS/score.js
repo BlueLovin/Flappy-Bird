@@ -19,14 +19,14 @@ export default class Score {
     }
 
     bestScoreRecord() {
-        if(this._score > this._bestScore) {
+        if (this._score > this._bestScore) {
             localStorage.setItem('bestScore', this._score)
         }
         this._bestScore = Number(localStorage.getItem('bestScore'))
     }
 
     localStorageScore() {
-        if(localStorage.getItem('bestScore')) {
+        if (localStorage.getItem('bestScore')) {
             this._bestScore = Number(localStorage.getItem('bestScore'))
         } else {
             this._bestScore = 0
@@ -34,14 +34,14 @@ export default class Score {
     }
 
     draw() {
-        if(this._score < 10) {
+        if (this._score < 10) {
             this.positionX = this.canvas.element.width / 2 - 15
         } else {
             this.positionX = this.canvas.element.width / 2 - 25
         }
 
         this.canvas.context.font = '50px Quantico'
-        
+
         this.canvas.context.fillStyle = 'white'
         this.canvas.context.fillText(this._score, this.positionX, this.positionY)
 

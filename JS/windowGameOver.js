@@ -7,7 +7,7 @@ export default class WindowGameOver {
         this.windowGameOver = new Image()
         this.windowGameOverPositionY = 100
 
-        this.PositionX = 200
+        this.PositionX = this.canvas.element.width / 2 + 50
         this.scorePositionY = 200
         this.bestScorePositionY = 242
     }

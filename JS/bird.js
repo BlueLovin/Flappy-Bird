@@ -20,7 +20,7 @@ export default class Bird {
     this.birdJump = 1;
 
     this.birdX = 0;
-    this.birdPositionX = this.canvas.element.width / 2 - this.birdWidth / 2;
+    this.birdPositionX = (this.canvas.element.width / 2);
 
     this.birdY;
     this.birdPositionY = 239;
@@ -51,14 +51,9 @@ export default class Bird {
       this.velocityY = this.maxUpwardsSpeed;
     }
 
-    // Prevent bird from going off the top or bottom of the screen
+    // Prevent bird from going off the top of the screen
     if (this.birdPositionY < 0) {
       this.birdPositionY = 0;
-      this.velocityY = 0;
-    }
-
-    if (this.birdPositionY > this.canvas.height) {
-      this.birdPositionY = this.canvas.height;
       this.velocityY = 0;
     }
   }
@@ -67,16 +62,21 @@ export default class Bird {
     this.config.index += 0.3;
     this.birdY = Math.floor((this.config.index % 9) / 3) * (this.birdWidth - 9);
 
+    let scaledBirdWidth = this.birdWidth * this.canvas.scaleFactor;
+    let scaledBirdHeight = this.birdHeight * this.canvas.scaleFactor;
+    let scaledPositionX = this.birdPositionX
+    let scaledPositionY = this.birdPositionY * this.canvas.scaleFactor;
+
     this.canvas.context.drawImage(
       this.imageBird,
       this.birdX,
       this.birdY,
-      this.birdWidth,
-      this.birdHeight,
-      this.birdPositionX,
-      this.birdPositionY,
-      this.birdWidth,
-      this.birdHeight
+      this.birdWidth, // Original sprite crop width (if using sprite sheet)
+      this.birdHeight, // Original sprite crop height
+      scaledPositionX,
+      scaledPositionY,
+      scaledBirdWidth,
+      scaledBirdHeight
     );
   }
 
@@ -87,20 +87,15 @@ export default class Bird {
   }
 
   control() {
-    if (document.documentElement.clientWidth > 1080) {
+    this.canvas.element.addEventListener("click", () => {
+      this.jump();
+    });
 
-      this.canvas.element.addEventListener("click", () => {
-        this.jump();
-      });
-
-    } else {
-      this.canvas.element.addEventListener("touchstart", () => {
-        this.jump();
-      });
-    }
+    this.canvas.element.addEventListener("touchstart", () => {
+      this.jump();
+    });
 
     document.addEventListener("keydown", (event) => {
-      console.log(event)
       if (event.code === 'Space') {
         this.jump();
       }

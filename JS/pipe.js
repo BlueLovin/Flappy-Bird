@@ -14,11 +14,16 @@ export default class Pipe {
     this.config = new Config();
     this.refreshGame = new RefreshGame();
 
+    this.newPipeAdded = false;
+    this.hasBeenScored = false;
+
+    this.speed = Math.floor(this.canvas.element.width / 250);
+
     this.gap = 130;
-    this.spaceBetweenPipe = 5;
-    this.pipe = [
+    this.spaceBetweenPipe = this.canvas.element.width / 1.5;
+    this.pipes = [
       {
-        x: 1.5 * this.canvas.element.width,
+        x: this.canvas.element.width,
         y: 0,
       },
     ];
@@ -29,36 +34,44 @@ export default class Pipe {
   }
 
   update(bird, gameLoop, windowGameOver, score, medal) {
-    this.pipe.forEach((pipe) => {
-      pipe.x--;
-
-      if (pipe.x === this.spaceBetweenPipe) {
-        this.pipe.push({
+    this.pipes.forEach((pipe) => {
+      pipe.x -= this.speed;
+      if (pipe.x < this.spaceBetweenPipe && !pipe.newPipeAdded) {
+        this.pipes.push({
           x: this.canvas.element.width,
           y:
-            Math.floor(Math.random() * (this.pipeUp.height - 100) /* -120 */) -
+            Math.floor(Math.random() * (this.pipeUp.height - 100)) -
             (this.pipeUp.height - 300),
         });
+        pipe.newPipeAdded = true;
       }
 
       if (pipe.x + this.pipeUp.width <= 0) {
-        this.pipe.shift();
+        this.pipes.shift();
       }
 
-      if (pipe.x === 125) {
+      if (pipe.x < bird.birdPositionX && !pipe.hasBeenScored) {
         score.increaseScore();
         score.audioScore.play();
+        pipe.hasBeenScored = true;
       }
 
-      if (
-        (bird.birdPositionX + bird.birdWidth >= pipe.x &&
-          bird.birdPositionX <= pipe.x + this.pipeUp.width &&
-          (bird.birdPositionY <= pipe.y - 5 + this.pipeUp.height - 200 ||
-            bird.birdPositionY + bird.birdHeight >=
-            pipe.y + this.pipeUp.height + this.gap - 200)) ||
-        bird.birdPositionY + bird.birdHeight >=
-        this.canvas.element.height - this.canvas.foreground.height
-      ) {
+      let scaledForegroundHeight = this.canvas.foreground.height * this.canvas.scaleFactor;
+
+      // Bird edges for collision detection
+      let birdBottomEdge = bird.birdPositionY + bird.birdHeight;
+
+      // Adjusting ground collision check for scaled foreground height
+      let playableAreaHeight = (this.canvas.element.height - scaledForegroundHeight) / this.canvas.scaleFactor;
+
+      let hitGround = birdBottomEdge >= playableAreaHeight;
+
+      let birdHitsPipeHorizontally = bird.birdPositionX + (bird.birdWidth * this.canvas.scaleFactor) >= pipe.x && bird.birdPositionX <= pipe.x + this.pipeUp.width;
+      let birdHitsTopPipeVertically = bird.birdPositionY <= pipe.y - 5 + this.pipeUp.height - 200;
+      let birdHitsBottomPipeVertically = bird.birdPositionY + bird.birdHeight >= pipe.y + this.pipeUp.height + this.gap - 200;
+
+      if ((birdHitsPipeHorizontally && (birdHitsTopPipeVertically || birdHitsBottomPipeVertically)) || hitGround) {
+
         gameLoop.cancelAnimation();
 
         document.addEventListener("click", () => {
@@ -80,7 +93,7 @@ export default class Pipe {
         this.btnRestart.addEventListener("click", this.refreshGame.restart);
 
         document.addEventListener("keydown", (event) => {
-          if (event.KeyboardEvent.keyCode === 32) {
+          if (event.code === 'Space') {
             this.refreshGame.restart();
           }
         });
@@ -88,31 +101,48 @@ export default class Pipe {
     });
   }
 
+
   draw() {
-    this.pipe.forEach((pipe) => {
-      this.canvas.context.drawImage(this.pipeUp, pipe.x, pipe.y - 200);
-      this.canvas.context.drawImage(
-        this.pipeBottom,
-        pipe.x,
-        pipe.y - 200 + this.pipeUp.height + this.gap
-      );
+    // Draw background images continuously and seamlessly
+    this.config.index += 0.3;
+    this.canvas.backgroundX = -((this.config.index * this.config.speedBackground) % this.canvas.element.width);
+    this.canvas.context.drawImage(this.canvas.background, this.canvas.backgroundX, 0, this.canvas.element.width, this.canvas.element.height);
+    if (this.canvas.backgroundX < 0) {
+      this.canvas.context.drawImage(this.canvas.background, this.canvas.backgroundX + this.canvas.element.width, 0, this.canvas.element.width, this.canvas.element.height);
+    }
+
+    // Draw pipes with scaling and correct positioning
+    this.pipes.forEach((pipe) => {
+      let scaledGap = this.gap * this.canvas.scaleFactor;
+      // Adjust the y-position and height based on the scale
+      let pipeYPosition = (pipe.y - 200) * this.canvas.scaleFactor; // Example adjustment
+
+      this.canvas.context.drawImage(this.pipeUp, pipe.x, pipeYPosition, this.pipeUp.width * this.canvas.scaleFactor, this.pipeUp.height * this.canvas.scaleFactor);
+      this.canvas.context.drawImage(this.pipeBottom, pipe.x, pipeYPosition + this.pipeUp.height * this.canvas.scaleFactor + scaledGap, this.pipeBottom.width * this.canvas.scaleFactor, this.pipeBottom.height * this.canvas.scaleFactor);
     });
 
-    this.config.index += 0.3;
-    this.canvas.backgroundX = -(
-      (this.config.index * this.config.speedBackground) %
-      this.canvas.element.width
-    );
+    // Draw foreground with scaling and correct positioning to match the dynamic canvas size
+    let scaledForegroundHeight = this.canvas.foreground.height * this.canvas.scaleFactor;
+    // Position the foreground at the bottom of the canvas, adjusting for its scaled height
+    let foregroundYPosition = this.canvas.element.height - scaledForegroundHeight;
 
     this.canvas.context.drawImage(
       this.canvas.foreground,
       this.canvas.backgroundX,
-      this.canvas.background.height
+      foregroundYPosition,
+      this.canvas.element.width, // Maintain width to span across the canvas
+      scaledForegroundHeight
     );
-    this.canvas.context.drawImage(
-      this.canvas.foreground,
-      this.canvas.backgroundX + this.canvas.element.width,
-      this.canvas.background.height
-    );
+    // Ensure the foreground seamlessly repeats similar to the background
+    if (this.canvas.backgroundX < 0) {
+      this.canvas.context.drawImage(
+        this.canvas.foreground,
+        this.canvas.backgroundX + this.canvas.element.width,
+        foregroundYPosition,
+        this.canvas.element.width, // Maintain width to span across the canvas
+        scaledForegroundHeight
+      );
+    }
   }
+
 }

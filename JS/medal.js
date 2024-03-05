@@ -10,17 +10,19 @@ export default class Medal {
         this.medalWidth = 45
         this.medalHeight = 45
 
-        this.medalPositionImgX 
-        this.medalPositionImgY 
+        this.medalPositionImgX
+        this.medalPositionImgY
 
-        this.medalPositionCanvasX = 56
+        this.medalPositionCanvasX = this.canvas.element.width / 2 - 90
+
+
         this.medalPositionCanvasY = 186
 
         this.score = score
     }
 
     draw() {
-        if (this.score._bestScore > 0 && this.score._bestScore <= 15)  {
+        if (this.score._bestScore > 0 && this.score._bestScore <= 15) {
             this.medalPositionImgX = 0
             this.medalPositionImgY = 0
         } else if (this.score._bestScore > 15) {
@@ -29,7 +31,7 @@ export default class Medal {
         } else if (this.score._bestScore > 30) {
             this.medalPositionImgX = 0
             this.medalPositionImgY = 45
-        } else if(this.score._bestScore > 50) {
+        } else if (this.score._bestScore > 50) {
             this.medalPositionImgX = 48
             this.medalPositionImgY = 45
         }
