@@ -1,7 +1,7 @@
 class RefreshGame {
-    restart() {
-        location.reload()
-    }
+  restart() {
+    location.reload();
+  }
 }
 
-export default RefreshGame
+export default RefreshGame;

@@ -20,17 +20,17 @@ export default class Bird {
     this.birdJump = 1;
 
     this.birdX = 0;
-    this.birdPositionX = (this.canvas.element.width / 2);
+    this.birdPositionX = this.canvas.element.width / 2 - this.birdWidth / 1.5;
 
     this.birdY;
     this.birdPositionY = 239;
 
     this.targetBirdPositionY = this.canvas.height; // Set the initial target position to be the bottom of the screen
-    this.lerpRate = 0.3; // Adjust this value to change the speed of the transition
-    this.velocityY = 0; // The bird's current vertical velocity
+    this.lerpRate = 0.3;
+    this.velocityY = 0;
     this.lift = -8; // The force of the jump (negative because it goes up)
-    this.maxDownwardsSpeed = 5; // The maximum speed at which the bird can fall
-    this.maxUpwardsSpeed = -10; // The maximum speed at which the bird can rise
+    this.maxDownwardsSpeed = 5;
+    this.maxUpwardsSpeed = -10;
 
     this.control();
   }
@@ -64,7 +64,7 @@ export default class Bird {
 
     let scaledBirdWidth = this.birdWidth * this.canvas.scaleFactor;
     let scaledBirdHeight = this.birdHeight * this.canvas.scaleFactor;
-    let scaledPositionX = this.birdPositionX
+    let scaledPositionX = this.birdPositionX;
     let scaledPositionY = this.birdPositionY * this.canvas.scaleFactor;
 
     this.canvas.context.drawImage(
@@ -81,24 +81,27 @@ export default class Bird {
   }
 
   jump() {
-    this.velocityY = 0; // Reset the velocity when a jump is initiated
-    this.velocityY += this.lift;
+    this.velocityY = this.lift;
     this.flyBird.play();
   }
 
   control() {
-    this.canvas.element.addEventListener("click", () => {
-      this.jump();
-    });
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-    this.canvas.element.addEventListener("touchstart", () => {
-      this.jump();
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.code === 'Space') {
+    if (isMobile) {
+      this.canvas.element.addEventListener("touchstart", () => {
         this.jump();
-      }
-    });
+      });
+    } else {
+      this.canvas.element.addEventListener("click", () => {
+        this.jump();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.code === "Space") {
+          this.jump();
+        }
+      });
+    }
   }
 }

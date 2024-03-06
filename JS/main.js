@@ -27,7 +27,7 @@ class Game {
     });
 
     document.addEventListener("keydown", (event) => {
-      if (event.code === 'Space') {
+      if (event.code === "Space") {
         this.config.gamePlaying = true;
       }
     });
